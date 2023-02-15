@@ -26,12 +26,18 @@ import { EndCall } from './views/EndCall';
 import { HomeScreen } from './views/HomeScreen';
 import { PageOpenInAnotherTab } from './views/PageOpenInAnotherTab';
 import { UnsupportedBrowserPage } from './views/UnsupportedBrowserPage';
+import { inTeams } from './utils/inTeams';
+import { app, FrameContexts, meeting, pages } from '@microsoft/teams-js';
+import { useTeamsContext } from './utils/useTeamsContext';
+import TabConfig from './views/TabConfig';
+import { SidePanel } from './views/SidePanel';
 
 setLogLevel('warning');
 
 initializeIcons();
 
-type AppPages = 'home' | 'call' | 'endCall';
+type AppPages = 'home' | 'call' | 'endCall' | 'teamsConfig' | 'teamsSidePanel';
+942794;
 
 const App = (): JSX.Element => {
   const [page, setPage] = useState<AppPages>('home');
@@ -42,8 +48,29 @@ const App = (): JSX.Element => {
   const [userCredentialFetchError, setUserCredentialFetchError] = useState<boolean>(false);
 
   // Call details to join a call - these are collected from the user on the home screen
-  const [callLocator, setCallLocator] = useState<CallAdapterLocator>(createGroupId());
-  const [displayName, setDisplayName] = useState<string>('');
+  const [callLocator, setCallLocator] = useState<CallAdapterLocator | null>(null);
+  const [displayName, setDisplayName] = useState<string>('ACS Teams Guest User');
+  const [initialized, setInitialized] = useState(false);
+  const teamsContext = useTeamsContext(initialized);
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        console.log('App.js: initializing client SDK initialized');
+        await app.initialize();
+        app.notifyAppLoaded();
+        app.notifySuccess();
+        setInitialized(true);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    if (inTeams() && !initialized) {
+      console.log('App.js: initializing client SDK');
+      initialize();
+    }
+  }, [initialized]);
 
   // Get Azure Communications Service token from the server
   useEffect(() => {
@@ -73,16 +100,41 @@ const App = (): JSX.Element => {
     return <PageOpenInAnotherTab />;
   }
 
+  const teamsAppReady = inTeams() && initialized;
+  useEffect(() => {
+    if (teamsAppReady && teamsContext) {
+      console.log('App.js: teams app ready');
+      // find context
+      const frameContext = teamsContext.page.frameContext;
+      console.log('App.js: frameContext', frameContext);
+      if (frameContext === FrameContexts.settings) {
+        setPage('teamsConfig');
+      } else if (frameContext === FrameContexts.sidePanel) {
+        setPage('teamsSidePanel');
+      }
+    }
+  }, [teamsAppReady, teamsContext]);
+
   const supportedBrowser = !isOnIphoneAndNotSafari();
   if (!supportedBrowser) {
     return <UnsupportedBrowserPage />;
   }
 
   switch (page) {
+    case 'teamsConfig': {
+      return <TabConfig />;
+    }
+    case 'teamsSidePanel': {
+      return <SidePanel />;
+    }
     case 'home': {
+      if (inTeams() && !initialized && !teamsContext) {
+        return <Spinner label={'Initializing Teams...'} ariaLive="assertive" labelPosition="top" />;
+      }
+
       document.title = `home - ${WEB_APP_TITLE}`;
       // Show a simplified join home screen if joining an existing call
-      const joiningExistingCall: boolean = !!getGroupIdFromUrl() || !!getTeamsLinkFromUrl();
+      const joiningExistingCall: boolean = !!teamsAppReady || !!getGroupIdFromUrl() || !!getTeamsLinkFromUrl();
 
       return (
         <HomeScreen
@@ -90,19 +142,36 @@ const App = (): JSX.Element => {
           startCallHandler={async (callDetails) => {
             setDisplayName(callDetails.displayName);
 
-            let callLocator: CallAdapterLocator | undefined =
-              callDetails.callLocator || getTeamsLinkFromUrl() || getGroupIdFromUrl();
+            if (teamsAppReady) {
+              meeting.getMeetingDetails((err, result) => {
+                console.log('App.js: meeting details', err, result);
+                if (err) {
+                  console.error(err);
+                  return;
+                }
+                if (!result) {
+                  console.error('App.js: no meeting details');
+                  return;
+                }
+                setCallLocator({
+                  meetingLink: result.details.joinUrl!
+                });
+                // Update window URL to have a joinable link
+                // if (!joiningExistingCall) {
+                //   window.history.pushState({}, document.title, window.location.origin + getJoinParams(callLocator));
+                // }
 
-            callLocator = callLocator || createGroupId();
+                setPage('call');
+              });
+            } else {
+              let callLocator: CallAdapterLocator | undefined =
+                callDetails.callLocator || getTeamsLinkFromUrl() || getGroupIdFromUrl();
 
-            setCallLocator(callLocator);
+              callLocator = callLocator || createGroupId();
 
-            // Update window URL to have a joinable link
-            if (!joiningExistingCall) {
-              window.history.pushState({}, document.title, window.location.origin + getJoinParams(callLocator));
+              setCallLocator(callLocator);
+              setPage('call');
             }
-
-            setPage('call');
           }}
         />
       );

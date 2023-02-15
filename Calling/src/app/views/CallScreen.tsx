@@ -8,15 +8,18 @@ import {
   CallAdapterState,
   CallComposite,
   toFlatCommunicationIdentifier,
-  useAzureCommunicationCallAdapter
+  useAzureCommunicationCallAdapter,
+  VideoGallery
 } from '@azure/communication-react';
 
-import { Spinner } from '@fluentui/react';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Spinner, Stack } from '@fluentui/react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSwitchableFluentTheme } from '../theming/SwitchableFluentThemeProvider';
 import { createAutoRefreshingCredential } from '../utils/credential';
 import { WEB_APP_TITLE } from '../utils/AppUtils';
 import { useIsMobile } from '../utils/useIsMobile';
+import { NoteContainer } from '../NoteContainer';
+import { inTeams } from '../utils/inTeams';
 
 export interface CallScreenProps {
   token: string;
@@ -27,9 +30,10 @@ export interface CallScreenProps {
   onCallEnded: () => void;
 }
 
-export const CallScreen = (props: CallScreenProps): JSX.Element => {
+export const CallScreen = memo((props: CallScreenProps): JSX.Element => {
   const { token, userId, callLocator, displayName, onCallEnded } = props;
   const callIdRef = useRef<string>();
+  const [callStatus, setCallStatus] = React.useState<string>('');
   const { currentTheme, currentRtl } = useSwitchableFluentTheme();
   const isMobileSession = useIsMobile();
   const afterCreate = useCallback(
@@ -44,6 +48,7 @@ export const CallScreen = (props: CallScreenProps): JSX.Element => {
       });
       adapter.onStateChange((state: CallAdapterState) => {
         const pageTitle = convertPageStateToString(state);
+        setCallStatus(pageTitle);
         document.title = `${pageTitle} - ${WEB_APP_TITLE}`;
 
         if (state?.call?.id && callIdRef.current !== state?.call?.id) {
@@ -88,15 +93,36 @@ export const CallScreen = (props: CallScreenProps): JSX.Element => {
   const callInvitationUrl: string | undefined = window.location.href;
 
   return (
-    <CallComposite
-      adapter={adapter}
-      fluentTheme={currentTheme.theme}
-      rtl={currentRtl}
-      callInvitationUrl={callInvitationUrl}
-      formFactor={isMobileSession ? 'mobile' : 'desktop'}
-    />
+    <Stack verticalFill>
+      {(inTeams() || callStatus === 'call') && (
+        <Stack styles={{ root: { height: '58vh' } }}>
+          <NoteContainer />
+        </Stack>
+      )}
+      {!inTeams() && (
+        <Stack styles={{ root: { height: '18vh' } }}>
+          <CallComposite
+            adapter={adapter}
+            fluentTheme={currentTheme.theme}
+            rtl={currentRtl}
+            callInvitationUrl={callInvitationUrl}
+            formFactor={'desktop'}
+            options={{
+              errorBar: true,
+              callControls: {
+                cameraButton: true,
+                microphoneButton: true,
+                screenShareButton: true,
+                endCallButton: true,
+                participantsButton: false
+              }
+            }}
+          />
+        </Stack>
+      )}
+    </Stack>
   );
-};
+});
 
 const convertPageStateToString = (state: CallAdapterState): string => {
   switch (state.page) {
