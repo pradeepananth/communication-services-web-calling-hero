@@ -50,7 +50,7 @@ export function useSharedObjects(acsLiveShareHostOptions: AcsLiveShareHostOption
 
     let isLocal = false;
     // Create live share host
-    // Uncomment for local testing
+    // Uncomment below line for local testing
     // isLocal = true;
     const host = isLocal
       ? TestLiveShareHost.create()

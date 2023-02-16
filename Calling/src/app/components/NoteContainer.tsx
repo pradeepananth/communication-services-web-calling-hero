@@ -7,12 +7,12 @@
 
 import { FC, useState } from 'react';
 import { Note } from './Note';
-import './noteContainer.css';
+import '../styles/noteContainer.css';
 import React from 'react';
-import { useSharedObjects } from './utils/useSharedObjects';
-import { LiveSharePage } from './components/LiveSharePage';
-import { useNotesMap } from './utils/useNotesMap';
-import { AcsLiveShareHostOptions } from './utils/AcsLiveShareHost';
+import { useSharedObjects } from '../utils/useSharedObjects';
+import { LiveSharePage } from '../components/LiveSharePage';
+import { useNotesMap } from '../utils/useNotesMap';
+import { AcsLiveShareHostOptions } from '../utils/AcsLiveShareHost';
 
 interface NoteContainerProps {
   acsLiveShareHostOptions: AcsLiveShareHostOptions | undefined;

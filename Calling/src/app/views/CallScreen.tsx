@@ -17,7 +17,7 @@ import { useSwitchableFluentTheme } from '../theming/SwitchableFluentThemeProvid
 import { createAutoRefreshingCredential } from '../utils/credential';
 import { WEB_APP_TITLE } from '../utils/AppUtils';
 import { useIsMobile } from '../utils/useIsMobile';
-import { NoteContainer } from '../NoteContainer';
+import { NoteContainer } from '../components/NoteContainer';
 import { TeamsMeetingLinkLocator } from '@azure/communication-calling';
 
 export interface CallScreenProps {

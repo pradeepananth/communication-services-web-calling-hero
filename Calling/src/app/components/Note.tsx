@@ -6,7 +6,7 @@
 /* eslint-disable react/prop-types */
 
 import React from 'react';
-import './note.css';
+import '../styles/note.css';
 
 export const Note = ({ index, text, color, onDelete }) => {
   // function to handle delete button click

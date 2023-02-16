@@ -27,11 +27,11 @@ import { HomeScreen } from './views/HomeScreen';
 import { PageOpenInAnotherTab } from './views/PageOpenInAnotherTab';
 import { UnsupportedBrowserPage } from './views/UnsupportedBrowserPage';
 import { inTeams } from './utils/inTeams';
-import { app, FrameContexts, meeting, pages } from '@microsoft/teams-js';
+import { app, FrameContexts } from '@microsoft/teams-js';
 import { useTeamsContext } from './utils/useTeamsContext';
 import TabConfig from './views/TabConfig';
 import { SidePanel } from './views/SidePanel';
-import { NoteContainer } from './NoteContainer';
+import { NoteContainer } from './components/NoteContainer';
 
 setLogLevel('warning');
 
@@ -131,7 +131,7 @@ const App = (): JSX.Element => {
       return <SidePanel />;
     }
     case 'teamsMeetingStage': {
-      return <NoteContainer />;
+      return <NoteContainer acsLiveShareHostOptions={undefined} />;
     }
     case 'home': {
       if (inTeams() && !initialized && !teamsContext) {
