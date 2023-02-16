@@ -45,7 +45,7 @@ export const HomeScreen = (props: HomeScreenProps): JSX.Element => {
   const defaultDisplayName = localStorageAvailable ? getDisplayNameFromLocalStorage() : null;
   const [displayName, setDisplayName] = useState<string | undefined>(defaultDisplayName ?? undefined);
 
-  const [chosenCallOption, setChosenCallOption] = useState<IChoiceGroupOption>(callOptions[0]);
+  const [chosenCallOption, setChosenCallOption] = useState<IChoiceGroupOption>(callOptions[1]);
   const [callLocator, setCallLocator] = useState<TeamsMeetingLinkLocator>();
 
   const startGroupCall: boolean = chosenCallOption.key === 'ACSCall';

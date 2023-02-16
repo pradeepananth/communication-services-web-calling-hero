@@ -15,7 +15,7 @@ export const SidePanel = () => {
       if (error) {
         console.error(error);
       }
-    }, `${window.location.origin}/?inTeams=true`);
+    }, `${window.location.origin}/?inTeams=true#1d3e40ee-98d1-45df-a44d-d28d63f07c75`);
   }, []);
 
   return (

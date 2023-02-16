@@ -8,8 +8,7 @@ import {
   CallAdapterState,
   CallComposite,
   toFlatCommunicationIdentifier,
-  useAzureCommunicationCallAdapter,
-  VideoGallery
+  useAzureCommunicationCallAdapter
 } from '@azure/communication-react';
 
 import { Spinner, Stack } from '@fluentui/react';
@@ -19,7 +18,6 @@ import { createAutoRefreshingCredential } from '../utils/credential';
 import { WEB_APP_TITLE } from '../utils/AppUtils';
 import { useIsMobile } from '../utils/useIsMobile';
 import { NoteContainer } from '../NoteContainer';
-import { inTeams } from '../utils/inTeams';
 
 export interface CallScreenProps {
   token: string;
@@ -94,12 +92,12 @@ export const CallScreen = memo((props: CallScreenProps): JSX.Element => {
 
   return (
     <Stack verticalFill>
-      {(inTeams() || callStatus === 'call') && (
-        <Stack styles={{ root: { height: '58vh' } }}>
+      {callStatus === 'call' && (
+        <Stack styles={{ root: { height: '58vh', overflow: 'auto' } }}>
           <NoteContainer />
         </Stack>
       )}
-      {!inTeams() && (
+      {
         <Stack styles={{ root: { height: '18vh' } }}>
           <CallComposite
             adapter={adapter}
@@ -119,7 +117,7 @@ export const CallScreen = memo((props: CallScreenProps): JSX.Element => {
             }}
           />
         </Stack>
-      )}
+      }
     </Stack>
   );
 });

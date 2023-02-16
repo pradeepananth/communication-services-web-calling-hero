@@ -31,12 +31,13 @@ import { app, FrameContexts, meeting, pages } from '@microsoft/teams-js';
 import { useTeamsContext } from './utils/useTeamsContext';
 import TabConfig from './views/TabConfig';
 import { SidePanel } from './views/SidePanel';
+import { NoteContainer } from './NoteContainer';
 
 setLogLevel('warning');
 
 initializeIcons();
 
-type AppPages = 'home' | 'call' | 'endCall' | 'teamsConfig' | 'teamsSidePanel';
+type AppPages = 'home' | 'call' | 'endCall' | 'teamsConfig' | 'teamsSidePanel' | 'teamsMeetingStage';
 942794;
 
 const App = (): JSX.Element => {
@@ -111,6 +112,8 @@ const App = (): JSX.Element => {
         setPage('teamsConfig');
       } else if (frameContext === FrameContexts.sidePanel) {
         setPage('teamsSidePanel');
+      } else if (frameContext === FrameContexts.meetingStage) {
+        setPage('teamsMeetingStage');
       }
     }
   }, [teamsAppReady, teamsContext]);
@@ -127,6 +130,9 @@ const App = (): JSX.Element => {
     case 'teamsSidePanel': {
       return <SidePanel />;
     }
+    case 'teamsMeetingStage': {
+      return <NoteContainer />;
+    }
     case 'home': {
       if (inTeams() && !initialized && !teamsContext) {
         return <Spinner label={'Initializing Teams...'} ariaLive="assertive" labelPosition="top" />;
@@ -134,44 +140,20 @@ const App = (): JSX.Element => {
 
       document.title = `home - ${WEB_APP_TITLE}`;
       // Show a simplified join home screen if joining an existing call
-      const joiningExistingCall: boolean = !!teamsAppReady || !!getGroupIdFromUrl() || !!getTeamsLinkFromUrl();
+      const joiningExistingCall: boolean = !!getGroupIdFromUrl() || !!getTeamsLinkFromUrl();
 
       return (
         <HomeScreen
           joiningExistingCall={joiningExistingCall}
           startCallHandler={async (callDetails) => {
             setDisplayName(callDetails.displayName);
+            let callLocator: CallAdapterLocator | undefined =
+              callDetails.callLocator || getTeamsLinkFromUrl() || getGroupIdFromUrl();
 
-            if (teamsAppReady) {
-              meeting.getMeetingDetails((err, result) => {
-                console.log('App.js: meeting details', err, result);
-                if (err) {
-                  console.error(err);
-                  return;
-                }
-                if (!result) {
-                  console.error('App.js: no meeting details');
-                  return;
-                }
-                setCallLocator({
-                  meetingLink: result.details.joinUrl!
-                });
-                // Update window URL to have a joinable link
-                // if (!joiningExistingCall) {
-                //   window.history.pushState({}, document.title, window.location.origin + getJoinParams(callLocator));
-                // }
+            callLocator = callLocator || createGroupId();
 
-                setPage('call');
-              });
-            } else {
-              let callLocator: CallAdapterLocator | undefined =
-                callDetails.callLocator || getTeamsLinkFromUrl() || getGroupIdFromUrl();
-
-              callLocator = callLocator || createGroupId();
-
-              setCallLocator(callLocator);
-              setPage('call');
-            }
+            setCallLocator(callLocator);
+            setPage('call');
           }}
         />
       );
