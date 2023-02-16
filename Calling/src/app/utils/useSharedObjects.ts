@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react';
 import { LivePresence } from '@microsoft/live-share';
 import { AzureConnectionConfig, AzureContainerServices } from '@fluidframework/azure-client';
 import { LiveShareHost } from '@microsoft/teams-js';
+import { AcsLiveShareHost, AcsLiveShareHostOptions } from './AcsLiveShareHost';
+import { inTeams } from './inTeams';
 
 /**
  * Hook that creates/loads the apps shared objects.
@@ -19,7 +21,7 @@ import { LiveShareHost } from '@microsoft/teams-js';
  *
  * @returns Shared objects managed by the apps fluid container.
  */
-export function useSharedObjects() {
+export function useSharedObjects(acsLiveShareHostOptions: AcsLiveShareHostOptions | undefined) {
   const [results, setResults] = useState<{
     container: IFluidContainer;
     services: AzureContainerServices;
@@ -46,8 +48,15 @@ export function useSharedObjects() {
       }
     };
 
+    let isLocal = false;
     // Create live share host
-    const host = TestLiveShareHost.create();
+    // Uncomment for local testing
+    // isLocal = true;
+    const host = isLocal
+      ? TestLiveShareHost.create()
+      : inTeams()
+      ? LiveShareHost.create()
+      : AcsLiveShareHost.create(acsLiveShareHostOptions!);
 
     // Create the client, join container, and set results
     console.log('useSharedObjects: joining container');

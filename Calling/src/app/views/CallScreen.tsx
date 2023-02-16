@@ -18,6 +18,7 @@ import { createAutoRefreshingCredential } from '../utils/credential';
 import { WEB_APP_TITLE } from '../utils/AppUtils';
 import { useIsMobile } from '../utils/useIsMobile';
 import { NoteContainer } from '../NoteContainer';
+import { TeamsMeetingLinkLocator } from '@azure/communication-calling';
 
 export interface CallScreenProps {
   token: string;
@@ -94,30 +95,34 @@ export const CallScreen = memo((props: CallScreenProps): JSX.Element => {
     <Stack verticalFill>
       {callStatus === 'call' && (
         <Stack styles={{ root: { height: '58vh', overflow: 'auto' } }}>
-          <NoteContainer />
-        </Stack>
-      )}
-      {
-        <Stack styles={{ root: { height: '18vh' } }}>
-          <CallComposite
-            adapter={adapter}
-            fluentTheme={currentTheme.theme}
-            rtl={currentRtl}
-            callInvitationUrl={callInvitationUrl}
-            formFactor={'desktop'}
-            options={{
-              errorBar: true,
-              callControls: {
-                cameraButton: true,
-                microphoneButton: true,
-                screenShareButton: true,
-                endCallButton: true,
-                participantsButton: false
-              }
+          <NoteContainer
+            acsLiveShareHostOptions={{
+              callAdapter: adapter,
+              teamsMeetingJoinUrl: (callLocator as TeamsMeetingLinkLocator).meetingLink,
+              acsTokenProvider: () => token
             }}
           />
         </Stack>
-      }
+      )}
+      <Stack styles={{ root: { height: '18vh' } }}>
+        <CallComposite
+          adapter={adapter}
+          fluentTheme={currentTheme.theme}
+          rtl={currentRtl}
+          callInvitationUrl={callInvitationUrl}
+          formFactor={'desktop'}
+          options={{
+            errorBar: true,
+            callControls: {
+              cameraButton: true,
+              microphoneButton: true,
+              screenShareButton: true,
+              endCallButton: true,
+              participantsButton: false
+            }
+          }}
+        />
+      </Stack>
     </Stack>
   );
 });

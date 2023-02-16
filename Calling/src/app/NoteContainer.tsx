@@ -5,18 +5,23 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable react/prop-types */
 
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { Note } from './Note';
 import './noteContainer.css';
 import React from 'react';
 import { useSharedObjects } from './utils/useSharedObjects';
 import { LiveSharePage } from './components/LiveSharePage';
 import { useNotesMap } from './utils/useNotesMap';
+import { AcsLiveShareHostOptions } from './utils/AcsLiveShareHost';
 
-export const NoteContainer = () => {
+interface NoteContainerProps {
+  acsLiveShareHostOptions: AcsLiveShareHostOptions | undefined;
+}
+
+export const NoteContainer: FC<NoteContainerProps> = ({ acsLiveShareHostOptions }) => {
   // state for storing notes
   // state for the notes array
-  const { container, presence, notesMap } = useSharedObjects();
+  const { container, presence, notesMap } = useSharedObjects(acsLiveShareHostOptions);
   const { started, notes, addNote, removeNote } = useNotesMap(notesMap);
   const [count, setCount] = useState(0);
 

@@ -25,7 +25,7 @@ export const LiveSharePage: FC<{
   return (
     <>
       {loadText && (
-        <Stack>
+        <Stack horizontal wrap horizontalAlign="center" verticalAlign="center">
           <Spinner label={loadText} ariaLive="assertive" labelPosition="top" />
         </Stack>
       )}
